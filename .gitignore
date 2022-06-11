@@ -7,3 +7,17 @@
 /c/StudentCheckSum
 /javascript/yarn.lock
 /javascript/node_modules
+/cpp/cmake-build-debug/
+/c/StudentCheckSum.i
+/c/StudentCheckSum.o
+/c/StudentCheckSum.s
+/go/.idea/
+/go/go.mod
+/go/StudentCheckSumServerClient
+/csharp/packages/
+/csharp/csharp.sln
+/csharp/csharp/Properties/
+/csharp/csharp/obj/
+/csharp/csharp/bin/
+/csharp/csharp/csharp.csproj
+/csharp/csharp/packages.config
