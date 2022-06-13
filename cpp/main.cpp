@@ -8,17 +8,17 @@
 #include <asm-generic/ioctls.h>
 #include <sys/ioctl.h>
 
-int _kbhit() {
+int kbhit() {
     static const int STDIN = 0;
     static bool initialized = false;
 
     if (!initialized) {
-        // Use termios to turn off line buffering
-        termios term;
+        // Use termios to turn off line-buffering
+        termios term{};
         tcgetattr(STDIN, &term);
         term.c_lflag &= ~ICANON;
         tcsetattr(STDIN, TCSANOW, &term);
-        setbuf(stdin, NULL);
+        setbuf(stdin, nullptr);
         initialized = true;
     }
 
@@ -29,8 +29,6 @@ int _kbhit() {
 
 #include <iostream>
 #include <csignal>
-
-bool clockwise = false;
 
 void down();
 
@@ -43,14 +41,23 @@ void right();
 enum Direction {
     Up = 'A',
     Down = 'B',
-    Right = 'C',
     Left = 'D'
 };
 
-char printchar = 'x';
+char printChar = 'x';
+bool clockwise = false;
+bool signalCalled;
+
+void signalHandler(int signum) {
+    signalCalled = true;
+}
 
 void checkNextLoop(void (*callback)()) {
-    if (_kbhit()) {
+    if (kbhit()) {
+        return;
+    }
+    if (signalCalled) {
+        printChar = 'w';
         return;
     }
     callback();
@@ -60,19 +67,21 @@ void moveCursor(Direction direction, int number = 1) {
     printf("\033[%d%c", number, direction);
 }
 
+void printCharToScreen() {
+    std::string s(1, printChar);
+    std::cout << s;
+}
+
 void reset() {
     if (clockwise) {
-        moveCursor(Direction::Left, 2);
+        moveCursor(Direction::Left);
+        printCharToScreen();
         checkNextLoop(up);
     } else {
         moveCursor(Direction::Left);
+        printCharToScreen();
         checkNextLoop(down);
     }
-}
-
-void printChar() {
-    std::string s(1, printchar);
-    std::cout << s;
 }
 
 void delay() {
@@ -84,7 +93,7 @@ void left() {
     for (int i = 0; i < 9; i++) {
         delay();
         moveCursor(Direction::Left, 2);
-        printChar();
+        printCharToScreen();
     }
     checkNextLoop(reset);
 }
@@ -94,7 +103,7 @@ void up() {
         delay();
         moveCursor(Direction::Left);
         moveCursor(Direction::Up);
-        printChar();
+        printCharToScreen();
     }
     if (clockwise) {
         checkNextLoop(right);
@@ -106,7 +115,7 @@ void up() {
 void right() {
     for (int i = 0; i < 9; i++) {
         delay();
-        printChar();
+        printCharToScreen();
     }
     if (clockwise) {
         checkNextLoop(down);
@@ -120,7 +129,7 @@ void down() {
         delay();
         moveCursor(Direction::Left);
         moveCursor(Direction::Down);
-        printChar();
+        printCharToScreen();
     }
     if (clockwise) {
         checkNextLoop(left);
@@ -130,8 +139,10 @@ void down() {
 }
 
 int main() {
+    signal(SIGINT, signalHandler);
+
     for (;;) {
-        switch (printchar) {
+        switch (printChar) {
             case 'w':
                 up();
                 break;
@@ -147,10 +158,15 @@ int main() {
                 right();
                 break;
             default:
-                printchar = 'x';
-                down();
+                clockwise = false;
+                printChar = 'x';
+                reset();
                 break;
         }
-        printchar = getchar();
+        if (signalCalled) {
+            signalCalled = false;
+        } else {
+            printChar = getchar();
+        }
     }
 }
