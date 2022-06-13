@@ -1,12 +1,22 @@
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, const char * argv[]) {
     printf("Enter your student number: ");
-    char studentNumber[8];
-    scanf("%s", &studentNumber);
+    char studentNumber[100];
+    scanf("%s", studentNumber);
+    if (strlen(studentNumber) != 8) {
+        printf("Input must be 8 numbers\n");
+        return 1;
+    }
     int sum = 0;
     for (int i = 0; i < 8; i++) {
-        sum += studentNumber[i] - '0';
+        if((studentNumber[i] > '0' && studentNumber[i] < '9')) {
+            sum += studentNumber[i] - '0';
+        } else if (studentNumber[i] != '\0') {
+            printf("Input must be numbers only\n");
+            return 1;
+        }
     }
     printf("The sum of your student number is: %d\n", sum);
 }
