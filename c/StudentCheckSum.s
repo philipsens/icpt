@@ -46,7 +46,7 @@ main:
 	jg	.L10 ; Als edx groter is dan 7, ga uit de for loop
 	movsx	rax, edx
 	movzx	eax, BYTE PTR [rsp+rax] ; Haal de karakter op
-	lea	ecx, -48[rax] ; Verander de karakter naar een getalz
+	lea	ecx, -48[rax] ; Verander de karakter naar een getal
 	cmp	cl, 9 ; Als de waarde van de char groter is dan 9 -
 	ja	.L11 ; voer dan deze code uit
 	movsx	eax, al
