@@ -1,0 +1,10 @@
+<h1>Studentnummer CheckSum</h1>
+<%= form_for @conn, Routes.page_path(@conn, :create), fn f -> %>
+<label>
+  Studentnummer: <%= text_input f, :studentNumber %>
+</label>
+
+<%= submit "Submit" %>
+<% end %>
+
+<%= assigns[:message] %>
