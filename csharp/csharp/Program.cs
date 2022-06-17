@@ -29,38 +29,49 @@ namespace csharp
 
     internal static class Program
     {
+        private static readonly Func<Resultaat, Resultaat, int>[]
+            SortFieldsFunction =
+            {
+                (x, y) => string.Compare(x.Code, y.Code, StringComparison.Ordinal),
+                (x, y) => string.Compare(y.Code, x.Code, StringComparison.Ordinal),
+                (x, y) => string.Compare(x.Ec, y.Ec, StringComparison.Ordinal),
+                (x, y) => string.Compare(y.Ec, x.Ec, StringComparison.Ordinal),
+                (x, y) => string.Compare(x.NepCijfer, y.NepCijfer, StringComparison.Ordinal),
+                (x, y) => string.Compare(y.NepCijfer, x.NepCijfer, StringComparison.Ordinal)
+            };
+
         public static void Main(string[] args)
         {
             var resultaten = GetResultaten();
             var column = AskUserWhichColumnToSort();
             var order = AskUserAscendingDescending();
 
-            resultaten = SortFields(resultaten, column, order);
-
+            var sortFunction = GetSortFunction(column, order);
+            SortList(resultaten, sortFunction);
             ShowResultaten(resultaten);
         }
 
-        private static List<Resultaat> SortFields(List<Resultaat> resultaten, int column, int order)
+        private static List<Resultaat> GetResultaten()
         {
-            var functionIndex = (column - 1) * 2 + order - 1;
-            return SortFieldsFunctions[functionIndex](resultaten);
-        }
-
-        private static void ShowResultaten(List<Resultaat> resultaten)
-        {
-            foreach (var resultaat in resultaten)
+            var resultaten = new List<Resultaat>();
+            using var reader =
+                new StreamReader(
+                    @"/home/sergi/Projects/2122.icpt-p4-s1108198/csharp/csharp/cijfers.csv");
+            while (!reader.EndOfStream)
             {
-                Console.WriteLine($"{resultaat.Code}\t{resultaat.Ec}\t{resultaat.Cijfer}");
+                var line = reader.ReadLine();
+                if (line == null) continue;
+                var values = line.Split(',');
+                var resultaat = new Resultaat
+                {
+                    Code = values[0],
+                    Ec = values[1],
+                    Cijfer = values[2]
+                };
+                resultaten.Add(resultaat);
             }
-        }
 
-        private static int AskUserAscendingDescending()
-        {
-            Console.WriteLine("Wilt u de sorteervolgorde oplopend of aflopend?");
-            Console.WriteLine("1. Oplopend");
-            Console.WriteLine("2. Aflopend");
-            Console.Write(">> ");
-            return Convert.ToInt32(Console.ReadLine());
+            return resultaten;
         }
 
         private static int AskUserWhichColumnToSort()
@@ -73,67 +84,37 @@ namespace csharp
             return Convert.ToInt32(Console.ReadLine());
         }
 
-        private static List<Resultaat> GetResultaten()
+        private static int AskUserAscendingDescending()
         {
-            var resultaten = new List<Resultaat>();
-            using var reader =
-                new StreamReader(@"/home/sergi/Projects/2122.icpt-p4-s1108198/csharp/csharp/cijfers.csv");
-            while (!reader.EndOfStream)
-            {
-                var line = reader.ReadLine();
-                if (line == null) continue;
-                var values = line.Split(',');
-                var resultaat = new Resultaat()
-                {
-                    Code = values[0],
-                    Ec = values[1],
-                    Cijfer = values[2]
-                };
-                resultaten.Add(resultaat);
-            }
-
-            return resultaten;
+            Console.WriteLine("Wilt u de sorteervolgorde oplopend of aflopend?");
+            Console.WriteLine("1. Oplopend");
+            Console.WriteLine("2. Aflopend");
+            Console.Write(">> ");
+            return Convert.ToInt32(Console.ReadLine());
         }
 
-        private static readonly Func<List<Resultaat>, List<Resultaat>>[] SortFieldsFunctions =
+        private static Func<Resultaat, Resultaat, int> GetSortFunction(int column, int
+            order)
         {
-            (list) =>
+            int GetFunctionIndex()
             {
-                list.Sort((x, y) =>
-                    string.Compare(x.Code, y.Code, StringComparison.Ordinal));
-                return list;
-            },
-            (list) =>
-            {
-                list.Sort((x, y) =>
-                    string.Compare(y.Code, x.Code, StringComparison.Ordinal));
-                return list;
-            },
+                return (column - 1) * 2 + order - 1;
+            }
 
-            (list) =>
-            {
-                list.Sort((x, y) =>
-                    string.Compare(x.Ec, y.Ec, StringComparison.Ordinal));
-                return list;
-            },
-            (list) =>
-            {
-                list.Sort((x, y) =>
-                    string.Compare(y.Ec, x.Ec, StringComparison.Ordinal));
-                return list;
-            },
-            (list) =>
-            {
-                list.Sort((x, y) =>
-                    string.Compare(x.NepCijfer, y.NepCijfer, StringComparison.Ordinal));
-                return list;
-            },
-            (list) =>
-            {
-                list.Sort((x, y) =>
-                    string.Compare(y.NepCijfer, x.NepCijfer, StringComparison.Ordinal));
-                return list;
-            },
-        };
+            var functionIndex = GetFunctionIndex();
+            return SortFieldsFunction[functionIndex];
+        }
+        
+        private static void SortList(List<Resultaat> resultaten,
+            Func<Resultaat, Resultaat, int> sortFunction)
+        {
+            resultaten.Sort((x, y) => sortFunction(x, y));
+        }
+        
+        private static void ShowResultaten(List<Resultaat> resultaten)
+        {
+            foreach (var resultaat in resultaten)
+                Console.WriteLine($"{resultaat.Code}\t{resultaat.Ec}\t{resultaat.Cijfer}");
+        }
     }
 }
