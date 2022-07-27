@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using static System.Reflection.Assembly;
 
 namespace csharp
 {
@@ -56,7 +55,7 @@ namespace csharp
         {
             var resultaten = new List<Resultaat>();
             
-            var directory = Path.GetDirectoryName(GetExecutingAssembly().Location);
+            var directory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             using var reader = new StreamReader(directory + @"/../../cijfers.csv");
             while (!reader.EndOfStream)
             {
